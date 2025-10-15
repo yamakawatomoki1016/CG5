@@ -1,24 +1,28 @@
-Shader "Unlit/01_Simple"
+Shader "Unlit/01_Simple_Orange"
 {
+    Properties{
+        _Color("Color",Color) = (1,0,0,1)
+        }
     SubShader
     {
         Pass
         {
-            CGPROGRAN
+            CGPROGRAM
             #pragma vertex vert
-            #pragma fragment fragm
-            #include"UnityCG.cginc"
+            #pragma fragment frag
+            #include "UnityCG.cginc"
 
-            float vert(float4 v:POSITION):SV_POSITION
+            fixed4 _Color;
+            float4 vert(float4 v : POSITION) : SV_POSITION
             {
                 float4 o;
-                o=UnityObjectToClipPos(v);
+                o = UnityObjectToClipPos(v);
                 return o;
             }
-            
-            fixed4 frag(float4 i:SV_POSITION):SV_TARGET
+
+            fixed4 frag(float4 i : SV_POSITION) : SV_TARGET
             {
-                fixed4 o=fixed4(1,0,0,1);
+                fixed4 o = _Color;
                 return o;
             }
             ENDCG
