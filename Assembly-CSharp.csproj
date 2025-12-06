@@ -64,10 +64,16 @@
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\NewUnlitShader 5.shader" />
+    <None Include="Assets\NewUnlitShader 4.shader" />
     <None Include="Assets\03_Specular.shader" />
+    <None Include="Assets\NewUnlitShader.shader" />
     <None Include="Assets\01_Simple.shader" />
     <None Include="Assets\02_Lambert.shader" />
+    <None Include="Assets\NewUnlitShader 3.shader" />
     <None Include="Assets\02_ADS.shader" />
+    <None Include="Assets\NewUnlitShader 2.shader" />
+    <None Include="Assets\NewUnlitShader 1.shader" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
