@@ -1,53 +1,76 @@
-Shader "Unlit/NewUnlitShader 4"
+Shader "Unlit/NewUnlitShader 4_Specular"
 {
-   Properties
- {
-     _MaskTex ("Texture", 2D) = "black" {}
- }
- SubShader
- {
-     Pass
-     {
-         CGPROGRAM
-         #pragma vertex vert
-         #pragma fragment frag
-         // make fog work
-         #pragma multi_compile_fog
+    Properties
+    {
+        _MaskTex ("Texture", 2D) = "black" {}
+        _SpecColor ("Specular Color", Color) = (1,1,1,1)
+        _Shininess ("Shininess", Range(1,128)) = 16
+    }
 
-         #include "UnityCG.cginc"
+    SubShader
+    {
+        Tags { "Queue"="Transparent" "RenderType"="Transparent" }
+        Blend SrcAlpha OneMinusSrcAlpha
 
-         struct appdata
-         {
-             float4 vertex : POSITION;
-             float2 uv : TEXCOORD0;
-         };
+        Pass
+        {
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma multi_compile_fog
+            #include "UnityCG.cginc"
 
-         struct v2f
-         {
-             float2 uv : TEXCOORD0;
-             UNITY_FOG_COORDS(1)
-             float4 vertex : SV_POSITION;
-         };
+            struct appdata
+            {
+                float4 vertex : POSITION;
+                float2 uv : TEXCOORD0;
+            };
 
-         sampler2D _MaskTex;
-         float4 _MaskTex_ST;
+            struct v2f
+            {
+                float2 uv : TEXCOORD0;
+                float4 vertex : SV_POSITION;
+            };
 
-         v2f vert (appdata v)
-         {
-             v2f o;
-             o.vertex = UnityObjectToClipPos(v.vertex);
-             o.uv = TRANSFORM_TEX(v.uv, _MaskTex);
-             UNITY_TRANSFER_FOG(o,o.vertex);
-             return o;
-         }
+            sampler2D _MaskTex;
+            float4 _MaskTex_ST;
+            float4 _SpecColor;
+            float _Shininess;
 
-         fixed4 frag (v2f i) : SV_Target
-         {
-             fixed4 specular = fixed4(pow(0.8, 8), pow(0.8, 8), pow(0.8, 8), 1);
-             fixed4 maskColor = tex2D(_MaskTex, i.uv * _MaskTex_ST.xy);
-             return maskColor.r * specular;
-         }
-         ENDCG
-     }
- }
+            v2f vert(appdata v)
+            {
+                v2f o;
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.uv = TRANSFORM_TEX(v.uv, _MaskTex);
+                return o;
+            }
+
+            fixed4 frag(v2f i) : SV_Target
+            {
+                // マスクテクスチャ
+                fixed4 maskColor = tex2D(_MaskTex, i.uv);
+
+                // --- 簡易スペキュラ計算 ---
+                // 法線（Z方向固定）
+                float3 N = float3(0,0,1);
+                // 光方向（上方向）
+                float3 L = normalize(float3(0,1,1));
+                // カメラ方向（正面）
+                float3 V = normalize(float3(0,0,1));
+
+                // 反射ベクトル
+                float3 R = reflect(-L, N);
+
+                // スペキュラ強度
+                float spec = pow(max(dot(R, V), 0.0), _Shininess);
+
+                // マスクの明度にスペキュラを掛ける
+                fixed3 finalColor = maskColor.rgb + spec * _SpecColor.rgb;
+
+                return fixed4(finalColor, maskColor.a);
+            }
+
+            ENDCG
+        }
+    }
 }
