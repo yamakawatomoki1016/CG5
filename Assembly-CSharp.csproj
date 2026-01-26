@@ -66,6 +66,7 @@
   <ItemGroup>
     <None Include="Assets\02_03.shader" />
     <None Include="Assets\06_1.shader" />
+    <None Include="Assets\08.shader" />
     <None Include="Assets\03_Specular.shader" />
     <None Include="Assets\02_01.shader" />
     <None Include="Assets\02_02.shader" />
