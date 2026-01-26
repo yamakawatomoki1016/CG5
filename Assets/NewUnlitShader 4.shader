@@ -1,76 +1,67 @@
-Shader "Unlit/NewUnlitShader 4_Specular"
+Shader "Unlit/Unlit_05_SpecularMap"
 {
     Properties
     {
-        _MaskTex ("Texture", 2D) = "black" {}
-        _SpecColor ("Specular Color", Color) = (1,1,1,1)
-        _Shininess ("Shininess", Range(1,128)) = 16
+        _MainTex("MainTex", 2D) = "white" {}
+        _Color("BaseColor", Color) = (0,0,0,0)
     }
 
     SubShader
     {
-        Tags { "Queue"="Transparent" "RenderType"="Transparent" }
-        Blend SrcAlpha OneMinusSrcAlpha
-
         Pass
         {
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma multi_compile_fog
             #include "UnityCG.cginc"
 
             struct appdata
             {
                 float4 vertex : POSITION;
+                float3 normal : NORMAL;
                 float2 uv : TEXCOORD0;
             };
 
             struct v2f
             {
-                float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
+                float3 normal : NORMAL;
+                float2 uv : TEXCOORD0;
+                float3 wPos : TEXCOORD1;
             };
 
-            sampler2D _MaskTex;
-            float4 _MaskTex_ST;
-            float4 _SpecColor;
-            float _Shininess;
+            sampler2D _MainTex;
+            float4 _MainTex_ST;
+            fixed4 _Color;
 
-            v2f vert(appdata v)
+            v2f vert (appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = TRANSFORM_TEX(v.uv, _MaskTex);
+                o.wPos = mul(unity_ObjectToWorld, v.vertex);
+                o.normal = UnityObjectToWorldNormal(v.normal);
+                o.uv = v.uv;
                 return o;
             }
 
-            fixed4 frag(v2f i) : SV_Target
+            fixed4 frag (v2f i) : SV_Target
             {
-                // マスクテクスチャ
-                fixed4 maskColor = tex2D(_MaskTex, i.uv);
+                fixed4 aColor = _Color * 0.3;
+                fixed4 dColor = _Color;
+                fixed4 sColor = fixed4(1,1,1,1);
 
-                // --- 簡易スペキュラ計算 ---
-                // 法線（Z方向固定）
-                float3 N = float3(0,0,1);
-                // 光方向（上方向）
-                float3 L = normalize(float3(0,1,1));
-                // カメラ方向（正面）
-                float3 V = normalize(float3(0,0,1));
+                float3 eyeDir = normalize(_WorldSpaceCameraPos.xyz - i.wPos);
+                float3 halfVec = normalize(_WorldSpaceLightPos0 + eyeDir);
 
-                // 反射ベクトル
-                float3 R = reflect(-L, N);
+                float intensity = saturate(dot(normalize(i.normal), halfVec));
+                float phong = pow(intensity, 20);
 
-                // スペキュラ強度
-                float spec = pow(max(dot(R, V), 0.0), _Shininess);
+                fixed4 maskColor = tex2D(_MainTex, i.uv * _MainTex_ST.xy);
 
-                // マスクの明度にスペキュラを掛ける
-                fixed3 finalColor = maskColor.rgb + spec * _SpecColor.rgb;
-
-                return fixed4(finalColor, maskColor.a);
+                return aColor + dColor * intensity + maskColor.r * phong * sColor;
             }
-
             ENDCG
         }
     }
+
 }
