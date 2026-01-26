@@ -65,12 +65,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\02_03.shader" />
+    <None Include="Assets\06_1.shader" />
     <None Include="Assets\03_Specular.shader" />
     <None Include="Assets\02_01.shader" />
     <None Include="Assets\02_02.shader" />
     <None Include="Assets\01_Simple.shader" />
     <None Include="Assets\02_Lambert.shader" />
     <None Include="Assets\02_ADS.shader" />
+    <None Include="Assets\06_2.shader" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
